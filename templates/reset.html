@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="column is-4 is-offset-4">
+        <h3 class="title">Enter a new Password</h3>
+        <div class="box">
+
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    <div class="notification is-danger">
+                        <p>{{ messages[0] }}</p>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/reset">
+                <input type="email" name="email" value="{{ email }}" readonly hidden>
+                <input type="text" name="code" value="{{ code }}" readonly hidden>
+                <div class="field">
+                    <div class="control">
+                        <input class="input is-large"
+                               id="password"
+                               type="password" name="password" placeholder="New Password"
+                               autofocus="" required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        <input class="input is-large" type="password"
+                               id="conf_password" name="conf_password"
+                               placeholder="Conform Password"
+                               required equalTo="password"
+                               onkeyup='check();'
+                        >
+                        <small class="form-text" id="passMsg"></small>
+                    </div>
+                </div>
+                <button class="button is-block is-info is-large is-fullwidth">Submit</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        var check = function () {
+            if (document.getElementById('password').value) {
+                if (document.getElementById('password').value === document.getElementById('conf_password').value) {
+                    document.getElementById('passMsg').style.color = 'green';
+                    document.getElementById('passMsg').textContent = 'password is matched.';
+                } else {
+                    document.getElementById('passMsg').style.color = 'red';
+                    document.getElementById('passMsg').textContent = 'password is not matched';
+                }
+            } else {
+                document.getElementById('passMsg').textContent = '';
+            }
+        }
+    </script>
+{% endblock %}

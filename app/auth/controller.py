@@ -8,6 +8,9 @@ import os
 
 auth = Blueprint('auth', __name__)
 
+# TODO read server from app config
+server = "http://localhost:9090/"
+
 
 @auth.route('/login')
 def login():
@@ -71,7 +74,6 @@ def signup_post():
     new_user.save()
 
     user_info.pop("_id", "")
-    server = "http://localhost:9090/"
     html = render_template("emails/register.html", profile=user_info, server=server)
     send_email(subject="Thanks For Registering", html=html, user_email=email)
 
@@ -107,4 +109,70 @@ def verify_account(email, code):
         return redirect(url_for('auth.login'))
 
     flash("No such a user with email {} found!".format(email))
+    return redirect(url_for('auth.login'))
+
+
+@auth.route('/forget')
+def forget():
+    return render_template("forget.html")
+
+
+@auth.route('/forget', methods=["POST"])
+def forget_post():
+    email = request.form.get('email')
+    user = UserModel.get_one(args={'email': email})
+
+    if not user:
+        flash("Please check your login details and try again")
+        return redirect(url_for('auth.login'))
+
+    reset_code = os.urandom(5).hex()
+    user.update(
+        args={'email': email},
+        data={"$set": {'request_reset': True, 'reset_code': reset_code}}
+    )
+
+    # send reset password email
+    html = render_template("emails/reset-password.html", email=email, server=server, code=reset_code)
+    send_email(subject="Reset Password", html=html, user_email=email)
+
+    flash("A reset link has been sent to your email, kindly check and reset your password")
+    return redirect(url_for('auth.login'))
+
+
+@auth.route('/reset/<email>/<code>')
+def reset(email, code):
+    user = UserModel.get_one(args={'email': email, 'request_reset': True})
+    if user and user.request_reset:
+        if user.reset_code == code:
+            return render_template("reset.html", email=email)
+    flash("Reset password link is expired")
+    return redirect(url_for('auth.login'))
+
+
+@auth.route('/reset', methods=["POST"])
+def reset_post():
+    email = request.form.get('email')
+    pwd = request.form.get('password')
+    conf_pwd = request.form.get('conf_password')
+
+    if pwd != conf_pwd:
+        flash("Passwords don't math")
+        return redirect(url_for('auth.reset', email=email))
+
+    user = UserModel.get_one(args={'email': email, 'request_reset': True})
+
+    if not user:
+        flash("No such a user with email {} found".format(email))
+        return redirect(url_for('auth.login'))
+
+    hash_pwd = UserModel.generate_hash(pwd)
+    user.update(
+        args={'email': email, 'request_reset': True},
+        data={
+            "$set": {'password': hash_pwd},
+            '$unset': {'request_reset': 1, 'reset_code': 1}
+        }
+    )
+
     return redirect(url_for('auth.login'))
