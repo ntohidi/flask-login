@@ -13,7 +13,7 @@ def email_sender(msg):
 
 
 def send_email(user_email="", html="", subject=""):
-    msg = Message(From="Nasrin", To=user_email, charset="utf-8")
+    msg = Message(From="Cool App", To=user_email, charset="utf-8")
     msg.Subject = subject
     msg.Body = subject
     msg.Html = html
@@ -22,20 +22,10 @@ def send_email(user_email="", html="", subject=""):
 
 
 def send_email_with_file(user_email="", html="", subject="", file_path=""):
-    msg = Message(From="Nasrin", To=user_email, charset="utf-8")
+    msg = Message(From="Cool App", To=user_email, charset="utf-8")
     msg.Subject = subject
     msg.Body = subject
     msg.Html = html
     msg.attach(file_path)
 
     return email_sender(msg)
-
-
-###################################################################################################
-# How to use
-# data = {
-#     'name': "nasrin",
-#     'email': 'nasrin@kidocoe.com'
-# }
-# html = render_template("emails/something.html", data=data)
-# send_email(subject="Thanks For Registering for workshop", html=html, user_email=data['email'])

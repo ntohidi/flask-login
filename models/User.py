@@ -30,7 +30,8 @@ class UserModel:
     def update(self, args, data):
         try:
             # res = users.update_one({'username': self.username}, {'$set': copy.deepcopy(self.__dict__)})
-            res = users.update_one(args, {'$set': data})
+            res = users.update_one(args, data)
+            print(res)
             return res.acknowledged
         except Exception as err:
             return jsonify(status=500, error="Error in updating user: {}".format(str(err)))

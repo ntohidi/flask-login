@@ -5,6 +5,9 @@
     <title>Title</title>
 </head>
 <body>
-
+<h3>Welcome {{ profile.get('name') }}</h3>
+<p>Kindly verify your account
+    <a href="{{ server }}auth/verify/{{ profile.get('email') }}/{{ profile.get('verification_code') }}">here</a>
+</p>
 </body>
 </html>

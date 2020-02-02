@@ -1,7 +1,10 @@
 from flask import (Blueprint, render_template, redirect, url_for, request, flash)
 from flask_login import login_user, logout_user, login_required
+from app.tools.email_man import send_email
 
 from models.User import UserModel
+
+import os
 
 auth = Blueprint('auth', __name__)
 
@@ -52,17 +55,27 @@ def signup_post():
 
     # create new user with the form data. Hash the password so plaintext version isn't saved.
     hash_pwd = UserModel.generate_hash(password)
-    new_user = UserModel({
+    verification_code = os.urandom(5).hex()
+
+    user_info = {
         "email": email,
         "name": name,
         "password": hash_pwd,
-        "is_active": True,
+        "is_active": False,
         "is_anonymous": False,
-        "is_authenticated": True
-    })
+        "is_authenticated": False,
+        "verification_code": verification_code,
+    }
 
+    new_user = UserModel(user_info)
     new_user.save()
 
+    user_info.pop("_id", "")
+    server = "http://localhost:9090/"
+    html = render_template("emails/register.html", profile=user_info, server=server)
+    send_email(subject="Thanks For Registering", html=html, user_email=email)
+
+    flash('A confirmation email has been sent to your email, kindly verify your account')
     return redirect(url_for('auth.login'))
 
 
@@ -71,3 +84,27 @@ def signup_post():
 def logout():
     logout_user()
     return redirect(url_for('main.index'))
+
+
+@auth.route('/verify/<email>/<code>')
+def verify_account(email, code):
+    user = UserModel.get_one(args={"email": email})
+    if user:
+        _user = user.to_json()
+        if bool(_user.get('verification_code', "")):
+            if user.verification_code == code:
+                user.update(
+                    args={"email": email},
+                    data={'$set': {'is_authenticated': True, 'is_active': True},
+                          '$unset': {'verification_code': 1}}
+                )
+                return redirect(url_for('auth.login'))
+
+            flash("Oh! wrong verification code!")
+            return redirect(url_for('auth.login'))
+
+        flash("You're account had been already verified!")
+        return redirect(url_for('auth.login'))
+
+    flash("No such a user with email {} found!".format(email))
+    return redirect(url_for('auth.login'))

@@ -8,7 +8,7 @@
             {% with messages = get_flashed_messages() %}
                 {% if messages %}
                     <div class="notification is-danger">
-                        <p>{{ messages[0] }}.</p>
+                        <p>{{ messages[0] }}</p>
                     </div>
                 {% endif %}
             {% endwith %}
@@ -16,13 +16,13 @@
             <form method="POST" action="/login">
                 <div class="field">
                     <div class="control">
-                        <input class="input is-large" type="email" name="email" placeholder="Your Email" autofocus="" value="nasrin@kidocode.com">
+                        <input class="input is-large" type="email" name="email" placeholder="Your Email" autofocus="">
                     </div>
                 </div>
 
                 <div class="field">
                     <div class="control">
-                        <input class="input is-large" type="password" name="password" placeholder="Your Password" value="nasrin">
+                        <input class="input is-large" type="password" name="password" placeholder="Your Password">
                     </div>
                 </div>
                 <div class="field">
